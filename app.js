@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
@@ -29,7 +30,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //Connecting to database
-mongoose.connect('mongodb://localhost:27017/Notes', { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+mongoose.connect(process.env.DB_HOST, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (!err) {
         console.log('Connected to database');
     }
@@ -173,6 +174,6 @@ app.get('/logout', function (req, res) {
 //Listen to port
 app.listen(3000, (err) => {
     if (!err) {
-        console.log('Port 3000');
+        console.log('Server started on port 3000');
     }
 });
