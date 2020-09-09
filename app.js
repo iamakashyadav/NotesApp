@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
 const session = require('express-session');
+const flash = require('connect-flash');
 
 //Creating an express app
 const app = express();
@@ -21,13 +22,25 @@ app.use(express.urlencoded({ extended: false })); // to support URL-encoded bodi
 //Express Session
 app.use(session({
     secret: 'secret',
-    resave: false,
-    saveUninitialized: false
+    resave: true,
+    saveUninitialized: true
 }));
 
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+//connect-flash middleware
+app.use(flash());
+
+//Global Variables
+app.use((req, res, next) => {
+    res.locals.success_message = req.flash('success_message');
+    res.locals.failure_message = req.flash('failure_message');
+    res.locals.error = req.flash('error');
+    next();
+});
+
 
 //Connecting to database
 mongoose.connect(process.env.DB_HOST, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
@@ -56,7 +69,8 @@ app.get('/register', auth.isLogout, (req, res) => {
 });
 
 app.get('/login', auth.isLogout, (req, res) => {
-    res.render('login');
+    const message=req.flash('error');
+    res.render('login',{message:message});
 });
 
 app.get('/notes', auth.isLogin, (req, res) => {
@@ -70,7 +84,8 @@ app.post('/register', (req, res) => {
     User.findOne({ email: req.body.email }, (err, foundUser) => {
         if (err) throw err;
         if (foundUser) {
-            console.log('User is already exist');
+            req.flash('failure_message', 'User already Registered!');
+            // console.log('User already Registered!');
             res.redirect('/register');
         }
         else {
@@ -83,7 +98,8 @@ app.post('/register', (req, res) => {
                     });
                     user.save((err) => {
                         if (err) throw err;
-                        console.log('User is registered..');
+                        // console.log('User is registered..');
+                        req.flash('success_message', 'You are Successfully Registered.. Please Login To Continue.');
                         res.redirect('/login');
                     });
                 });
@@ -93,8 +109,10 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', passport.authenticate('local', {
+
     successRedirect: '/notes',
-    failureRedirect: '/login'
+    failureRedirect: '/login',
+    failureFlash: true
 })
 );
 

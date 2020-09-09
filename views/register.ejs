@@ -9,6 +9,9 @@
 <body>
     <div class="center">
         <h1>Register</h1>
+        <%if(failure_message !=''){%>
+            <p style="color: red; text-align: center; margin-bottom: 5px;"><%=failure_message%></p>
+            <%}%>
         <hr>
         <form action="/register" method="POST">
             <input type="text" name="name" placeholder="Name">
